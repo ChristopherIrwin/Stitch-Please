@@ -1,0 +1,342 @@
+import React, { useState, useRef, useCallback, useEffect } from 'react';
+import Webcam from 'react-webcam';
+import ColorThief from 'colorthief';
+import { Camera, Image as ImageIcon, X, Sparkles, MessageSquare, Send } from 'lucide-react';
+import { FilesetResolver, LlmInference } from '@mediapipe/tasks-genai';
+
+const AIColorAgent = ({ onColorSelect, onSavePalette, onClose }) => {
+    const [mode, setMode] = useState('initial'); // initial, camera, upload, chat
+    const [imageSrc, setImageSrc] = useState(null);
+    const [colors, setColors] = useState([]);
+    const [generatedPalette, setGeneratedPalette] = useState(null); // { name: '', colors: [] }
+    const [analyzing, setAnalyzing] = useState(false);
+    const [prompt, setPrompt] = useState('');
+    const [chatHistory, setChatHistory] = useState([]); // {role: 'user'|'model', text: ''}
+    const [modelLoading, setModelLoading] = useState(false);
+    const [llmEngine, setLlmEngine] = useState(null);
+
+    const webcamRef = useRef(null);
+    const fileInputRef = useRef(null);
+
+    // Initialize Gemma Model
+    useEffect(() => {
+        const initModel = async () => {
+            if (mode === 'chat' && !llmEngine && !modelLoading) {
+                setModelLoading(true);
+                try {
+                    const genai = await FilesetResolver.forGenAiTasks(
+                        "https://cdn.jsdelivr.net/npm/@mediapipe/tasks-genai/wasm"
+                    );
+
+                    const llm = await LlmInference.createFromOptions(genai, {
+                        baseOptions: {
+                            modelAssetPath: "/models/gemma-3n-E4B-it-int4-Web.litertlm",
+                            delegate: "GPU"
+                        },
+                        maxTokens: 512,
+                        topK: 40,
+                        temperature: 0.8,
+                        randomSeed: 101
+                    });
+
+                    setLlmEngine(llm);
+                    setModelLoading(false);
+                    console.log("Gemma Model Loaded Successfully");
+                } catch (error) {
+                    console.error("Failed to load Gemma model:", error);
+                    setModelLoading(false);
+                    // Add error message to chat
+                    setChatHistory(prev => [...prev, { role: 'model', text: "Error loading model. Please ensure 'gemma-3n-E4B-it-int4-Web.litertlm' is in /public/models/." }]);
+                }
+            }
+        };
+        initModel();
+    }, [mode, llmEngine, modelLoading]);
+
+    const capture = useCallback(() => {
+        const imageSrc = webcamRef.current.getScreenshot();
+        setImageSrc(imageSrc);
+        setMode('analyze');
+    }, [webcamRef]);
+
+    const handleFileUpload = (e) => {
+        const file = e.target.files[0];
+        if (file) {
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                setImageSrc(e.target.result);
+                setMode('analyze');
+            };
+            reader.readAsDataURL(file);
+        }
+    };
+
+    const analyzeColors = () => {
+        setAnalyzing(true);
+        setTimeout(() => {
+            const img = new Image();
+            img.crossOrigin = 'Anonymous';
+            img.src = imageSrc;
+            img.onload = () => {
+                const colorThief = new ColorThief();
+                const palette = colorThief.getPalette(img, 6);
+                const hexPalette = palette.map(rgb => `#${rgb[0].toString(16).padStart(2, '0')}${rgb[1].toString(16).padStart(2, '0')}${rgb[2].toString(16).padStart(2, '0')}`);
+                setColors(hexPalette);
+                setAnalyzing(false);
+            };
+        }, 1500);
+    };
+
+    const handlePromptSubmit = async () => {
+        if (!prompt.trim() || !llmEngine) return;
+
+        const userMsg = prompt;
+        setPrompt('');
+        setChatHistory(prev => [...prev, { role: 'user', text: userMsg }]);
+        setAnalyzing(true);
+
+        // Construct a structured prompt for Gemma to output valid specific hex codes
+        const systemInstruction = "You are a color theory expert. Generate a specific, harmonious color palette suitable for a granny square crochet project based on the user's description. You MUST output a JSON object with two fields: 'name' (a creative name for the palette) and 'colors' (an array of 5-8 HEX color strings). Example: { \"name\": \"Ocean Breeze\", \"colors\": [\"#00AABB\", \"#ffffff\"] }. Do not include markdown code blocks, just the raw JSON string.";
+        const fullPrompt = `${systemInstruction}\nUser: ${userMsg}\nModel:`;
+
+        try {
+            const response = await llmEngine.generateResponse(fullPrompt);
+            setChatHistory(prev => [...prev, { role: 'model', text: response }]);
+
+            // Attempt to parse JSON from response (handling potential markdown wrapping)
+            const jsonMatch = response.match(/\{[\s\S]*\}/);
+            if (jsonMatch) {
+                try {
+                    const parsed = JSON.parse(jsonMatch[0]);
+                    if (parsed.colors && Array.isArray(parsed.colors)) {
+                        setColors(parsed.colors);
+                        setGeneratedPalette(parsed);
+                    }
+                } catch (e) {
+                    console.error("Failed to parse JSON", e);
+                    // Fallback regex extraction if JSON fails
+                    const hexMatches = response.match(/#[0-9A-Fa-f]{6}/g);
+                    if (hexMatches && hexMatches.length > 0) {
+                        const fallbackColors = hexMatches.slice(0, 8);
+                        setColors(fallbackColors);
+                        setGeneratedPalette({ name: userMsg, colors: fallbackColors });
+                    }
+                }
+            } else {
+                // Fallback regex extraction
+                const hexMatches = response.match(/#[0-9A-Fa-f]{6}/g);
+                if (hexMatches && hexMatches.length > 0) {
+                    const fallbackColors = hexMatches.slice(0, 8);
+                    setColors(fallbackColors);
+                    setGeneratedPalette({ name: userMsg, colors: fallbackColors });
+                }
+            }
+        } catch (error) {
+            console.error("Gemma generation error:", error);
+            setChatHistory(prev => [...prev, { role: 'model', text: "Sorry, I had trouble generating that palette." }]);
+        } finally {
+            setAnalyzing(false);
+        }
+    };
+
+    return (
+        <div style={{
+            position: 'absolute',
+            top: '50%',
+            left: '50%',
+            transform: 'translate(-50%, -50%)',
+            backgroundColor: '#2a2a2a',
+            padding: '30px',
+            borderRadius: '16px',
+            boxShadow: '0 10px 40px rgba(0,0,0,0.5)',
+            width: '600px',
+            maxHeight: '80vh',
+            display: 'flex',
+            flexDirection: 'column',
+            zIndex: 1000,
+            border: '1px solid #444'
+        }}>
+            <button onClick={onClose} style={{ position: 'absolute', top: 15, right: 15, background: 'none', border: 'none', color: '#666', cursor: 'pointer' }}><X size={20} /></button>
+
+            <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '20px' }}>
+                <div style={{ width: '32px', height: '32px', borderRadius: '50%', background: 'linear-gradient(135deg, #FFD700, #FF6B6B)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                    <Sparkles size={18} color="white" />
+                </div>
+                <div>
+                    <h2 style={{ margin: 0, fontSize: '18px', color: 'white' }}>Gemma-3n-E4b-IT Agent</h2>
+                    <p style={{ margin: 0, fontSize: '12px', color: '#888' }}>Powered by Google MediaPipe & LiteRT</p>
+                </div>
+            </div>
+
+            {mode === 'initial' && (
+                <div style={{ display: 'flex', gap: '20px', justifyContent: 'center', padding: '20px 0' }}>
+                    <button
+                        onClick={() => setMode('chat')}
+                        style={{
+                            flex: 1, padding: '20px', backgroundColor: '#333', border: '1px solid #646cff', borderRadius: '8px',
+                            color: '#ccc', cursor: 'pointer', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '10px'
+                        }}
+                    >
+                        <MessageSquare size={32} color="#646cff" />
+                        Prompt Gemma
+                    </button>
+                    <button
+                        onClick={() => setMode('camera')}
+                        style={{
+                            flex: 1, padding: '20px', backgroundColor: '#333', border: '1px dashed #555', borderRadius: '8px',
+                            color: '#ccc', cursor: 'pointer', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '10px'
+                        }}
+                    >
+                        <Camera size={32} />
+                        Scan via Webcam
+                    </button>
+                    <button
+                        onClick={() => fileInputRef.current.click()}
+                        style={{
+                            flex: 1, padding: '20px', backgroundColor: '#333', border: '1px dashed #555', borderRadius: '8px',
+                            color: '#ccc', cursor: 'pointer', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '10px'
+                        }}
+                    >
+                        <ImageIcon size={32} />
+                        Upload Photo
+                        <input type="file" ref={fileInputRef} onChange={handleFileUpload} style={{ display: 'none' }} accept="image/*" />
+                    </button>
+                </div>
+            )}
+
+            {mode === 'chat' && (
+                <div style={{ display: 'flex', flexDirection: 'column', height: '400px' }}>
+
+                    {modelLoading && (
+                        <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', flexDirection: 'column', color: '#888' }}>
+                            <div className="spinner" style={{ width: '30px', height: '30px', border: '3px solid rgba(255,255,255,0.1)', borderTopColor: '#646cff', borderRadius: '50%', marginBottom: '10px', animation: 'spin 1s linear infinite' }}></div>
+                            <p>Loading Model (~2GB)... Only needed once.</p>
+                        </div>
+                    )}
+
+                    {!modelLoading && (
+                        <>
+                            <div style={{ flex: 1, overflowY: 'auto', padding: '10px', background: '#222', borderRadius: '8px', marginBottom: '10px', fontSize: '14px' }}>
+                                {chatHistory.length === 0 && <p style={{ color: '#666', textAlign: 'center', marginTop: '50px' }}>Ask me for any color palette! <br /> e.g. "Ocean vibes" or "Retro 70s"</p>}
+                                {chatHistory.map((msg, i) => (
+                                    <div key={i} style={{ marginBottom: '10px', textAlign: msg.role === 'user' ? 'right' : 'left' }}>
+                                        <span style={{
+                                            display: 'inline-block',
+                                            padding: '8px 12px',
+                                            borderRadius: '12px',
+                                            background: msg.role === 'user' ? '#646cff' : '#444',
+                                            color: '#fff'
+                                        }}>
+                                            {msg.text}
+                                        </span>
+                                    </div>
+                                ))}
+                            </div>
+
+                            <div style={{ display: 'flex', gap: '10px' }}>
+                                <input
+                                    type="text"
+                                    value={prompt}
+                                    onChange={(e) => setPrompt(e.target.value)}
+                                    onKeyDown={(e) => e.key === 'Enter' && handlePromptSubmit()}
+                                    placeholder="Describe a palette..."
+                                    style={{ flex: 1, padding: '12px', borderRadius: '8px', border: '1px solid #555', background: '#333', color: 'white' }}
+                                />
+                                <button
+                                    onClick={handlePromptSubmit}
+                                    disabled={analyzing}
+                                    style={{ padding: '0 20px', borderRadius: '8px', background: analyzing ? '#444' : '#646cff', color: 'white', border: 'none', cursor: analyzing ? 'default' : 'pointer' }}
+                                >
+                                    {analyzing ? 'Thinking...' : <Send size={20} />}
+                                </button>
+                            </div>
+                        </>
+                    )}
+                </div>
+            )}
+
+            {mode === 'camera' && (
+                <div>
+                    <Webcam
+                        audio={false}
+                        ref={webcamRef}
+                        screenshotFormat="image/jpeg"
+                        videoConstraints={{
+                            facingMode: "environment"
+                        }}
+                        style={{ width: '100%', borderRadius: '8px', marginBottom: '15px' }}
+                    />
+                    <button
+                        onClick={capture}
+                        style={{ width: '100%', padding: '12px', background: '#646cff', color: 'white', border: 'none', borderRadius: '8px', cursor: 'pointer', fontSize: '14px', fontWeight: 'bold' }}
+                    >
+                        Capture
+                    </button>
+                </div>
+            )}
+
+            {(mode === 'analyze' || mode === 'done' || (mode === 'chat' && colors.length > 0)) && (mode !== 'chat' || colors.length > 0) && (
+                <div style={{ marginTop: '20px' }}>
+                    {(mode === 'analyze' || mode === 'done') && imageSrc && (
+                        <div style={{ width: '100%', height: '150px', backgroundColor: '#000', borderRadius: '8px', overflow: 'hidden', marginBottom: '15px', position: 'relative' }}>
+                            <img src={imageSrc} style={{ width: '100%', height: '100%', objectFit: 'contain' }} alt="Analysis Target" />
+                            {analyzing && (<div style={{ position: 'absolute', inset: 0, background: 'rgba(0,0,0,0.7)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}><span style={{ color: 'white' }}>Analyzing...</span></div>)}
+                        </div>
+                    )}
+
+                    {!analyzing && (mode === 'analyze' || mode === 'done') && colors.length === 0 && (
+                        <button
+                            onClick={analyzeColors}
+                            style={{ width: '100%', padding: '12px', background: 'linear-gradient(90deg, #646cff, #9c27b0)', color: 'white', border: 'none', borderRadius: '8px', cursor: 'pointer' }}
+                        >
+                            Analyze
+                        </button>
+                    )}
+
+                    {colors.length > 0 && (
+                        <div>
+                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px' }}>
+                                <h3 style={{ fontSize: '14px', color: '#ccc', margin: 0 }}>
+                                    {generatedPalette?.name || "Generated Palette"}
+                                </h3>
+                                <button
+                                    onClick={() => {
+                                        const paletteToSave = generatedPalette || { name: `Analyzed Palette ${new Date().toLocaleTimeString()}`, colors: colors };
+                                        onSavePalette(paletteToSave);
+                                        alert(`Saved "${paletteToSave.name}" to Library!`);
+                                    }}
+                                    style={{
+                                        padding: '4px 8px',
+                                        fontSize: '11px',
+                                        backgroundColor: '#333',
+                                        border: '1px solid #666',
+                                        color: '#eee',
+                                        borderRadius: '4px',
+                                        cursor: 'pointer'
+                                    }}
+                                >
+                                    Save to Library
+                                </button>
+                            </div>
+                            <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap' }}>
+                                {colors.map((color, idx) => (
+                                    <button
+                                        key={idx}
+                                        onClick={() => { onColorSelect(color); onClose(); }}
+                                        style={{
+                                            width: '50px', height: '50px', borderRadius: '50%', backgroundColor: color, border: '2px solid #444',
+                                            cursor: 'pointer', transition: 'transform 0.2s', position: 'relative'
+                                        }}
+                                        title={`Select ${color}`}
+                                    />
+                                ))}
+                            </div>
+                        </div>
+                    )}
+                </div>
+            )}
+        </div>
+    );
+};
+
+export default AIColorAgent;
