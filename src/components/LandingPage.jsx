@@ -7,30 +7,45 @@ const LandingPage = ({ onStart }) => {
             width: '100vw',
             height: '100vh',
             overflow: 'hidden',
-            background: 'linear-gradient(135deg, #0f0f13 0%, #1a1a2e 100%)',
-            color: '#fff',
+            background: 'var(--bg-color)',
+            color: 'var(--text-color)',
             display: 'flex',
             flexDirection: 'column',
             position: 'relative'
         }}>
-            {/* Background Ambience */}
+            {/* Whimsical Background Shapes */}
             <div style={{
                 position: 'absolute',
-                top: '-20%',
+                top: '-15%',
                 left: '-10%',
-                width: '50vw',
-                height: '50vw',
-                background: 'radial-gradient(circle, rgba(100, 108, 255, 0.15) 0%, rgba(0,0,0,0) 70%)',
-                borderRadius: '50%',
-                zIndex: 0
+                width: '60vw',
+                height: '60vw',
+                background: 'var(--accent-color)',
+                opacity: 0.1,
+                borderRadius: '40% 60% 70% 30% / 40% 50% 60% 50%',
+                zIndex: 0,
+                animation: 'float 20s infinite ease-in-out'
             }} />
             <div style={{
                 position: 'absolute',
                 bottom: '-20%',
-                right: '-10%',
-                width: '60vw',
-                height: '60vw',
-                background: 'radial-gradient(circle, rgba(156, 39, 176, 0.15) 0%, rgba(0,0,0,0) 70%)',
+                right: '-5%',
+                width: '50vw',
+                height: '50vw',
+                background: 'var(--primary-color)',
+                opacity: 0.1,
+                borderRadius: '60% 40% 30% 70% / 60% 30% 70% 40%',
+                zIndex: 0,
+                animation: 'float 25s infinite ease-in-out reverse'
+            }} />
+            <div style={{
+                position: 'absolute',
+                top: '20%',
+                right: '15%',
+                width: '20vw',
+                height: '20vw',
+                background: 'var(--highlight-color)',
+                opacity: 0.15,
                 borderRadius: '50%',
                 zIndex: 0
             }} />
@@ -43,23 +58,25 @@ const LandingPage = ({ onStart }) => {
                 alignItems: 'center',
                 zIndex: 10
             }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
                     <div style={{
-                        width: '32px', height: '32px',
-                        background: 'linear-gradient(45deg, #646cff, #9c27b0)',
-                        borderRadius: '8px'
-                    }} />
-                    <h1 style={{ fontSize: '1.5rem', fontWeight: 'bold', letterSpacing: '0.5px' }}>
-                        Stitch Please
+                        width: '40px', height: '40px',
+                        background: 'var(--primary-color)',
+                        borderRadius: '50%',
+                        display: 'flex', alignItems: 'center', justifyContent: 'center',
+                        color: 'white', fontWeight: 'bold', fontSize: '1.2rem',
+                        fontFamily: 'var(--font-heading)',
+                        boxShadow: '0 4px 0 rgba(0,0,0,0.1)'
+                    }}>Y</div>
+                    <h1 style={{
+                        fontSize: '2rem',
+                        fontFamily: 'var(--font-heading)',
+                        color: 'var(--text-color)',
+                        letterSpacing: '0.5px'
+                    }}>
+                        Yarn Whimsy
                     </h1>
                 </div>
-                <a
-                    href="#"
-                    onClick={(e) => { e.preventDefault(); onStart(); }}
-                    style={{ textDecoration: 'none', color: '#aaa', fontSize: '0.9rem' }}
-                >
-                    Login
-                </a>
             </nav>
 
             {/* Hero Section */}
@@ -74,96 +91,110 @@ const LandingPage = ({ onStart }) => {
                 zIndex: 10
             }}>
                 <h2 style={{
-                    fontSize: '4rem',
-                    fontWeight: '800',
-                    marginBottom: '1.5rem',
-                    lineHeight: 1.1,
-                    background: 'linear-gradient(to right, #fff, #a5a5a5)',
-                    WebkitBackgroundClip: 'text',
-                    WebkitTextFillColor: 'transparent'
+                    fontSize: '5rem',
+                    fontFamily: 'var(--font-heading)',
+                    marginBottom: '1rem',
+                    lineHeight: 1,
+                    color: 'var(--text-color)'
                 }}>
                     Design. Visualize.<br />
-                    <span style={{
-                        background: 'linear-gradient(45deg, #646cff, #9c27b0)',
-                        WebkitBackgroundClip: 'text',
-                        WebkitTextFillColor: 'transparent'
-                    }}>
+                    <span style={{ color: 'var(--primary-color)' }}>
                         Crochet.
                     </span>
                 </h2>
 
                 <p style={{
-                    fontSize: '1.1rem',
-                    color: '#888',
+                    fontSize: '1.3rem',
+                    fontFamily: 'var(--font-body)',
+                    color: '#666',
                     maxWidth: '600px',
                     marginBottom: '3rem',
-                    lineHeight: 1.6
+                    lineHeight: 1.6,
+                    fontWeight: 500
                 }}>
-                    The ultimate grid tool for granny square enthusiasts.
-                    Plan intricate layouts, extract color palettes with AI,
-                    and export your patterns—all in one place.
+                    The playful grid tool for granny square lovers.
+                    Plan layouts, mix colors, and bring your whimsy to life.
                 </p>
 
                 <button
                     onClick={onStart}
                     style={{
-                        padding: '16px 48px',
-                        fontSize: '1.1rem',
-                        fontWeight: '600',
-                        background: 'linear-gradient(90deg, #646cff, #9c27b0)',
+                        padding: '18px 56px',
+                        fontSize: '1.4rem',
+                        fontFamily: 'var(--font-heading)',
+                        background: 'var(--primary-color)',
                         border: 'none',
-                        borderRadius: '30px',
+                        borderRadius: '50px',
                         color: 'white',
                         cursor: 'pointer',
-                        boxShadow: '0 10px 30px rgba(100, 108, 255, 0.4)',
-                        transition: 'transform 0.2s',
+                        boxShadow: '0 6px 0 #E05555, 0 15px 20px rgba(255, 107, 107, 0.3)',
+                        transition: 'transform 0.1s, box-shadow 0.1s',
                         display: 'flex',
                         alignItems: 'center',
                         gap: '12px'
                     }}
-                    onMouseEnter={e => e.currentTarget.style.transform = 'scale(1.05)'}
-                    onMouseLeave={e => e.currentTarget.style.transform = 'scale(1)'}
+                    onMouseEnter={e => e.currentTarget.style.transform = 'translateY(-2px)'}
+                    onMouseLeave={e => e.currentTarget.style.transform = 'translateY(0)'}
+                    onMouseDown={e => {
+                        e.currentTarget.style.transform = 'translateY(4px)';
+                        e.currentTarget.style.boxShadow = '0 2px 0 #E05555';
+                    }}
+                    onMouseUp={e => {
+                        e.currentTarget.style.transform = 'translateY(-2px)';
+                        e.currentTarget.style.boxShadow = '0 6px 0 #E05555, 0 15px 20px rgba(255, 107, 107, 0.3)';
+                    }}
                 >
                     Start Designing
-                    <ArrowRight size={20} />
+                    <ArrowRight size={24} strokeWidth={3} />
                 </button>
 
                 {/* Feature Pills */}
                 <div style={{
                     marginTop: '5rem',
                     display: 'flex',
-                    gap: '2rem',
+                    gap: '1.5rem',
                     flexWrap: 'wrap',
                     justifyContent: 'center'
                 }}>
-                    <FeaturePill icon={<Grid size={18} />} text="Infinite Grid" />
-                    <FeaturePill icon={<Wand2 size={18} />} text="AI Palettes" />
-                    <FeaturePill icon={<Smartphone size={18} />} text="Mobile Ready" />
-                    <FeaturePill icon={<Share2 size={18} />} text="Export Plan" />
+                    <FeaturePill icon={<Grid size={20} />} text="Infinite Grid" color="var(--accent-color)" />
+                    <FeaturePill icon={<Wand2 size={20} />} text="AI Palettes" color="var(--highlight-color)" />
+                    <FeaturePill icon={<Smartphone size={20} />} text="Mobile Ready" color="var(--primary-color)" />
+                    <FeaturePill icon={<Share2 size={20} />} text="Export Plan" color="#A8A8A8" />
                 </div>
             </main>
 
-            <footer style={{ padding: '2rem', textAlign: 'center', color: '#444', fontSize: '0.8rem', zIndex: 10 }}>
-                © 2025 Stitch Please. Made for makers.
+            <footer style={{ padding: '2rem', textAlign: 'center', color: '#888', fontFamily: 'var(--font-body)', fontSize: '0.9rem', zIndex: 10 }}>
+                © 2025 Yarn Whimsy. Made with 🧶 & ❤️.
             </footer>
+
+            <style>{`
+                @keyframes float {
+                    0% { transform: translate(0, 0) rotate(0deg); }
+                    33% { transform: translate(30px, -50px) rotate(10deg); }
+                    66% { transform: translate(-20px, 20px) rotate(-5deg); }
+                    100% { transform: translate(0, 0) rotate(0deg); }
+                }
+            `}</style>
         </div>
     );
 };
 
-const FeaturePill = ({ icon, text }) => (
+const FeaturePill = ({ icon, text, color }) => (
     <div style={{
         display: 'flex',
         alignItems: 'center',
         gap: '10px',
-        padding: '10px 20px',
-        background: 'rgba(255, 255, 255, 0.05)',
-        borderRadius: '20px',
-        border: '1px solid rgba(255, 255, 255, 0.1)',
-        fontSize: '0.9rem',
-        color: '#ccc',
-        backdropFilter: 'blur(10px)'
+        padding: '12px 24px',
+        background: 'white',
+        borderRadius: '50px',
+        border: `2px solid ${color}`,
+        fontSize: '1rem',
+        fontWeight: 'bold',
+        fontFamily: 'var(--font-body)',
+        color: 'var(--text-color)',
+        boxShadow: '0 4px 6px rgba(0,0,0,0.05)'
     }}>
-        <span style={{ color: '#646cff' }}>{icon}</span>
+        <span style={{ color: color, display: 'flex' }}>{icon}</span>
         {text}
     </div>
 );

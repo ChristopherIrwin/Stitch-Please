@@ -1,10 +1,22 @@
 :root {
-  --bg-color: #1a1a1a;
-  --text-color: #f0f0f0;
-  --primary-color: #646cff;
-  --accent-color: #ffcc00;
-  --grid-line-color: #333;
-  --panel-bg: #242424;
+  /* Yarn Whimsy - Pastel Palette */
+  --bg-color: #FFFDF5;
+  /* Creamy Off-White */
+  --text-color: #2D3436;
+  /* Soft Charcoal */
+  --primary-color: #FF6B6B;
+  /* Coral Pop */
+  --accent-color: #4ECDC4;
+  /* Mint Turquoise */
+  --highlight-color: #FFE66D;
+  /* Sunny Yellow */
+  --grid-line-color: #E0E0E0;
+  /* Soft Grey */
+  --panel-bg: #FFFFFF;
+  /* Pure White Cards */
+
+  --font-heading: 'Chewy', cursive;
+  --font-body: 'Quicksand', sans-serif;
 }
 
 * {
@@ -14,7 +26,7 @@
 body {
   margin: 0;
   padding: 0;
-  font-family: 'Inter', system-ui, -apple-system, sans-serif;
+  font-family: var(--font-body);
   background-color: var(--bg-color);
   color: var(--text-color);
   width: 100vw;
