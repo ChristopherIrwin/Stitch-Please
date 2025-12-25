@@ -79,7 +79,7 @@ const AIColorAgent = ({ onColorSelect, onSavePalette, onClose }) => {
         const systemInstruction = "You are a color theory expert. Generate a specific, harmonious color palette suitable for a granny square crochet project based on the user's description. You MUST output a JSON object with two fields: 'name' (a creative name for the palette) and 'colors' (an array of 5-8 HEX color strings). Example: { \"name\": \"Ocean Breeze\", \"colors\": [\"#00AABB\", \"#ffffff\"] }. Do not include markdown code blocks, just the raw JSON string.";
 
         try {
-            const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent?key=${apiKey}`, {
+            const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey}`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
