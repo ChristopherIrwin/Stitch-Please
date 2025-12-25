@@ -120,16 +120,16 @@ const PaletteManager = ({ activeColor, onColorSelect, onOpenAgent, customPalette
 
             {/* Main Palette Bar */}
             <div style={{
-                width: '60px',
-                backgroundColor: '#242424',
-                borderLeft: '1px solid #333',
+                width: '70px',
+                backgroundColor: 'var(--panel-bg)',
+                borderLeft: '1px solid var(--grid-line-color)',
                 display: 'flex',
                 flexDirection: 'column',
                 alignItems: 'center',
-                padding: '20px 0',
+                padding: '24px 0',
                 gap: '15px',
-                borderRadius: '8px',
-                boxShadow: '-2px 0 10px rgba(0,0,0,0.3)',
+                borderRadius: '24px',
+                boxShadow: '0 4px 12px rgba(0,0,0,0.05)',
             }}>
                 <h3 style={{ fontSize: '10px', textTransform: 'uppercase', color: '#888', textAlign: 'center', margin: 0 }}>Yarn</h3>
 

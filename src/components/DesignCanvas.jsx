@@ -285,7 +285,7 @@ const DesignCanvas = ({ gridConfig, activeShape, placedShapes, onShapePlace }) =
             style={{
                 width: '100%',
                 height: '100%',
-                backgroundColor: '#1a1a1a',
+                backgroundColor: 'var(--bg-color)',
                 position: 'relative',
                 fontFamily: 'sans-serif',
                 overscrollBehavior: 'none',

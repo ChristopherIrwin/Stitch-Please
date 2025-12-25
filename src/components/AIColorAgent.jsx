@@ -171,28 +171,49 @@ const AIColorAgent = ({ onColorSelect, onSavePalette, onClose }) => {
             top: '50%',
             left: '50%',
             transform: 'translate(-50%, -50%)',
-            backgroundColor: '#2a2a2a',
+            backgroundColor: 'var(--panel-bg)',
             padding: '30px',
-            borderRadius: '16px',
-            boxShadow: '0 10px 40px rgba(0,0,0,0.5)',
+            borderRadius: '24px',
+            boxShadow: '0 20px 60px rgba(0,0,0,0.1)',
             width: '600px',
             maxHeight: '80vh',
             display: 'flex',
             flexDirection: 'column',
             zIndex: 1000,
-            border: '1px solid #444'
+            border: '1px solid var(--grid-line-color)',
+            color: 'var(--text-color)'
         }}>
-            <button onClick={onClose} style={{ position: 'absolute', top: 15, right: 15, background: 'none', border: 'none', color: '#666', cursor: 'pointer' }}><X size={20} /></button>
+            <button onClick={onClose} style={{ position: 'absolute', top: 20, right: 20, background: 'none', border: 'none', color: '#999', cursor: 'pointer' }}><X size={24} /></button>
 
-            <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '20px' }}>
-                <div style={{ width: '32px', height: '32px', borderRadius: '50%', background: 'linear-gradient(135deg, #FFD700, #FF6B6B)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                    <Sparkles size={18} color="white" />
+            <div style={{ display: 'flex', alignItems: 'center', gap: '15px', marginBottom: '25px' }}>
+                <div style={{
+                    width: '40px', height: '40px', borderRadius: '50%',
+                    background: 'var(--primary-color)',
+                    display: 'flex', alignItems: 'center', justifyContent: 'center',
+                    boxShadow: '0 4px 10px rgba(255, 107, 107, 0.3)'
+                }}>
+                    <Sparkles size={20} color="white" />
                 </div>
                 <div>
-                    <h2 style={{ margin: 0, fontSize: '18px', color: 'white' }}>Gemma-3n-E4b-IT Agent</h2>
-                    <p style={{ margin: 0, fontSize: '12px', color: '#888' }}>Powered by Google MediaPipe & LiteRT</p>
+                    <h2 style={{ margin: 0, fontSize: '20px', fontFamily: 'var(--font-heading)', color: 'var(--text-color)' }}>Whimsy AI Agent</h2>
+                    <p style={{ margin: 0, fontSize: '13px', color: '#888', fontFamily: 'var(--font-body)' }}>Powered by Google Gemma 3</p>
                 </div>
             </div>
+
+            {/* Mobile Warning */}
+            {mode === 'chat' && !llmEngine && !modelLoading && (
+                <div style={{
+                    backgroundColor: '#FFF4E5',
+                    borderLeft: '4px solid #FF9800',
+                    padding: '12px',
+                    borderRadius: '4px',
+                    fontSize: '13px',
+                    marginBottom: '15px',
+                    color: '#663C00'
+                }}>
+                    <strong>⚠️ Large Download (4GB):</strong> This AI feature runs entirely in your browser. It requires a stable Wi-Fi connection and may time out on mobile devices.
+                </div>
+            )}
 
             {mode === 'initial' && (
                 <div style={{ display: 'flex', gap: '20px', justifyContent: 'center', padding: '20px 0' }}>

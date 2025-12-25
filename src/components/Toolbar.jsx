@@ -41,16 +41,16 @@ const Toolbar = ({ activeShape, onShapeSelect, gridConfig, setGridConfig, onClea
             left: 20,
             top: 20,
             bottom: 20,
-            width: '60px',
-            backgroundColor: '#242424',
-            borderRight: '1px solid #333',
+            width: '70px',
+            backgroundColor: 'var(--panel-bg)',
+            borderRight: '1px solid var(--grid-line-color)',
             display: 'flex',
             flexDirection: 'column',
             alignItems: 'center',
-            padding: '20px 0',
+            padding: '24px 0',
             gap: '20px',
-            borderRadius: '8px',
-            boxShadow: '2px 0 10px rgba(0,0,0,0.3)',
+            borderRadius: '24px',
+            boxShadow: '0 4px 12px rgba(0,0,0,0.05)',
             zIndex: 100
         }}>
             <div style={{ marginBottom: '10px' }}>
