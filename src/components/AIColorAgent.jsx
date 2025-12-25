@@ -18,19 +18,46 @@ const AIColorAgent = ({ onColorSelect, onSavePalette, onClose }) => {
     const webcamRef = useRef(null);
     const fileInputRef = useRef(null);
 
-    // Initialize Gemma Model
+    // Initialize Gemma Model with Progress Tracking
     useEffect(() => {
         const initModel = async () => {
             if (mode === 'chat' && !llmEngine && !modelLoading) {
                 setModelLoading(true);
                 try {
+                    // Step 1: Initialize FilesetResolver (WASM)
                     const genai = await FilesetResolver.forGenAiTasks(
                         "https://cdn.jsdelivr.net/npm/@mediapipe/tasks-genai/wasm"
                     );
 
+                    // Step 2: Manually fetch the model to track progress
+                    const modelUrl = "https://storage.googleapis.com/gemma3ne4bitint4web/gemma-3n-E4B-it-int4-Web.litertlm";
+                    const response = await fetch(modelUrl);
+                    if (!response.ok) throw new Error(`Model fetch failed: ${response.statusText}`);
+
+                    const contentLength = response.headers.get('content-length');
+                    const total = contentLength ? parseInt(contentLength, 10) : 0;
+                    let loaded = 0;
+
+                    const reader = response.body.getReader();
+                    const chunks = [];
+
+                    while (true) {
+                        const { done, value } = await reader.read();
+                        if (done) break;
+                        chunks.push(value);
+                        loaded += value.length;
+                        if (total) {
+                            setDownloadProgress(Math.round((loaded / total) * 100)); // Update progress
+                        }
+                    }
+
+                    const blob = new Blob(chunks);
+                    const objectUrl = URL.createObjectURL(blob);
+
+                    // Step 3: Initialize LLM with the local object URL
                     const llm = await LlmInference.createFromOptions(genai, {
                         baseOptions: {
-                            modelAssetPath: "https://storage.googleapis.com/gemma3ne4bitint4web/gemma-3n-E4B-it-int4-Web.litertlm",
+                            modelAssetPath: objectUrl,
                             delegate: "GPU"
                         },
                         maxTokens: 512,
@@ -45,8 +72,7 @@ const AIColorAgent = ({ onColorSelect, onSavePalette, onClose }) => {
                 } catch (error) {
                     console.error("Failed to load Gemma model:", error);
                     setModelLoading(false);
-                    // Add specific error message to chat for debugging
-                    setChatHistory(prev => [...prev, { role: 'model', text: `Error: ${error.message || error.toString()}. \nRequest failed? Check CORS or URL.` }]);
+                    setChatHistory(prev => [...prev, { role: 'model', text: `Error: ${error.message || error.toString()}. \nRequest failed? Check CORS.` }]);
                 }
             }
         };
@@ -209,8 +235,21 @@ const AIColorAgent = ({ onColorSelect, onSavePalette, onClose }) => {
 
                     {modelLoading && (
                         <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', flexDirection: 'column', color: '#888' }}>
-                            <div className="spinner" style={{ width: '30px', height: '30px', border: '3px solid rgba(255,255,255,0.1)', borderTopColor: '#646cff', borderRadius: '50%', marginBottom: '10px', animation: 'spin 1s linear infinite' }}></div>
-                            <p>Loading Model (~2GB)... Only needed once.</p>
+                            <div className="spinner" style={{
+                                width: '40px', height: '40px',
+                                border: '4px solid #f3f3f3',
+                                borderTopColor: 'var(--primary-color)',
+                                borderRadius: '50%',
+                                marginBottom: '15px',
+                                animation: 'spin 1s linear infinite'
+                            }}></div>
+                            <p style={{ fontFamily: 'var(--font-body)', fontWeight: 'bold' }}>
+                                Downloading AI Model... {downloadProgress}%
+                            </p>
+                            <p style={{ fontSize: '12px', marginTop: '5px' }}> (~4GB, first time only)</p>
+                            <div style={{ width: '200px', height: '6px', background: '#eee', borderRadius: '3px', marginTop: '10px' }}>
+                                <div style={{ width: `${downloadProgress}%`, height: '100%', background: 'var(--primary-color)', borderRadius: '3px', transition: 'width 0.2s' }} />
+                            </div>
                         </div>
                     )}
 
