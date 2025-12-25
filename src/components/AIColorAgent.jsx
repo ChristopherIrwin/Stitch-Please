@@ -30,7 +30,7 @@ const AIColorAgent = ({ onColorSelect, onSavePalette, onClose }) => {
 
                     const llm = await LlmInference.createFromOptions(genai, {
                         baseOptions: {
-                            modelAssetPath: "/models/gemma-3n-E4B-it-int4-Web.litertlm",
+                            modelAssetPath: "https://storage.googleapis.com/gemma3ne4bitint4web/gemma-3n-E4B-it-int4-Web.litertlm",
                             delegate: "GPU"
                         },
                         maxTokens: 512,
