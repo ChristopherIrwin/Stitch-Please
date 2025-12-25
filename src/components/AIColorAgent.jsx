@@ -45,8 +45,8 @@ const AIColorAgent = ({ onColorSelect, onSavePalette, onClose }) => {
                 } catch (error) {
                     console.error("Failed to load Gemma model:", error);
                     setModelLoading(false);
-                    // Add error message to chat
-                    setChatHistory(prev => [...prev, { role: 'model', text: "Error loading model. Please ensure 'gemma-3n-E4B-it-int4-Web.litertlm' is in /public/models/." }]);
+                    // Add specific error message to chat for debugging
+                    setChatHistory(prev => [...prev, { role: 'model', text: `Error: ${error.message || error.toString()}. \nRequest failed? Check CORS or URL.` }]);
                 }
             }
         };
